@@ -1,18 +1,28 @@
 # Build artifacts
 bin/
-!bin/roo-code-latest.vsix
 dist/
 **/dist/
 out/
 **/out/
+src/webview-ui/
 
-# Dependencies
+# dependencies
 node_modules/
 **/node_modules/
 
-# Test and development files
+# testing
 coverage/
 **/.vscode-test/
+**/mock/
 
+# devtools
 knip.json
 .husky/
+
+# monorepo
+.turbo/
+**/.turbo/
+
+# next.js
+**/.next/
+.vercel
