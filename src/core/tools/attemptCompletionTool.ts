@@ -15,6 +15,7 @@ import {
 } from "../../shared/tools"
 import { formatResponse } from "../prompts/responses"
 import { type ExecuteCommandOptions, executeCommand } from "./executeCommandTool"
+import { EXPERIMENT_IDS, experiments } from "../../shared/experiments"
 
 export async function attemptCompletionTool(
 	cline: Task,
@@ -68,7 +69,20 @@ export async function attemptCompletionTool(
 
 			let commandResult: ToolResponse | undefined
 
-			if (command) {
+			// Check if command execution is disabled via experiment
+			const state = await cline.providerRef.deref()?.getState()
+			const experimentsConfig = state?.experiments ?? {}
+			const isCommandDisabled = experiments.isEnabled(
+				experimentsConfig as Record<string, boolean>,
+				EXPERIMENT_IDS.DISABLE_COMPLETION_COMMAND
+			)
+
+			// DEPRECATION NOTICE: The command parameter is being deprecated.
+			// Phase 1 (Current): Experimental flag to disable command execution
+			// Phase 2 (Q2 2025): Disabled by default with opt-in
+			// Phase 3 (Q3 2025): Complete removal
+			// See docs/deprecation-attempt-completion-command.md for migration guide
+			if (command && !isCommandDisabled) {
 				if (lastMessage && lastMessage.ask !== "command") {
 					// Haven't sent a command message yet so first send completion_result then command.
 					await cline.say("completion_result", result, undefined, false)
