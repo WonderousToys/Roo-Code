@@ -74,14 +74,9 @@ export async function attemptCompletionTool(
 			const experimentsConfig = state?.experiments ?? {}
 			const isCommandDisabled = experiments.isEnabled(
 				experimentsConfig as Record<string, boolean>,
-				EXPERIMENT_IDS.DISABLE_COMPLETION_COMMAND
+				EXPERIMENT_IDS.DISABLE_COMPLETION_COMMAND,
 			)
 
-			// DEPRECATION NOTICE: The command parameter is being deprecated.
-			// Phase 1 (Current): Experimental flag to disable command execution
-			// Phase 2 (Q2 2025): Disabled by default with opt-in
-			// Phase 3 (Q3 2025): Complete removal
-			// See docs/deprecation-attempt-completion-command.md for migration guide
 			if (command && !isCommandDisabled) {
 				if (lastMessage && lastMessage.ask !== "command") {
 					// Haven't sent a command message yet so first send completion_result then command.
