@@ -1,7 +1,9 @@
-# docker compose build web runner
+# Server:
+# docker compose build web
+# docker compose --profile server up
 
-# docker compose up db web
-# docker compose up runner
+# Client:
+# docker compose build runner
 # docker compose up runner --no-start
 # docker run -it --rm --network evals_default evals-runner bash
 # docker run --rm --network evals_default evals-runner sh -c "pnpm --filter @roo-code/evals cli 3"
@@ -19,8 +21,25 @@ services:
             - POSTGRES_USER=postgres
             - POSTGRES_PASSWORD=password
             - POSTGRES_DATABASES=evals_development,evals_test
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres -d evals_development"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
         profiles:
-            - db
+            - server
+
+    redis:
+        container_name: evals-redis
+        image: redis:7-alpine
+        ports:
+            - "6379:6379"
+        volumes:
+            - ./.docker/redis:/data
+        command: redis-server --appendonly yes
+        profiles:
+            - server
 
     web:
         container_name: evals-web
@@ -34,8 +53,11 @@ services:
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
         user: "0:0" # Run as root to access docker socket.
+        depends_on:
+            db:
+                condition: service_healthy
         profiles:
-            - web
+            - server
 
     runner:
         container_name: evals-runner
@@ -45,4 +67,4 @@ services:
         stdin_open: true
         tty: true
         profiles:
-            - runner
+            - client

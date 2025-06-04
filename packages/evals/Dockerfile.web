@@ -11,7 +11,7 @@ RUN npm install -g npm@latest
 RUN npm install -g npm-run-all
 
 # Install system packages
-RUN apt update && apt install -y sudo curl git vim jq
+RUN apt update && apt install -y sudo curl git vim jq postgresql-client
 
 # Install Docker CLI
 RUN apt install -y apt-transport-https ca-certificates gnupg lsb-release
@@ -66,7 +66,10 @@ RUN pnpm install
 
 COPY --chown=vscode:vscode . ./
 
+COPY --chown=vscode:vscode packages/evals/.docker/entrypoints/web.sh /usr/local/bin/entrypoint.sh
+RUN sudo chmod +x /usr/local/bin/entrypoint.sh
+
 ENV DATABASE_URL=postgresql://postgres:password@db:5432/evals_development
 
 EXPOSE 3000
-CMD ["pnpm", "--filter", "@roo-code/web-evals", "dev"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
