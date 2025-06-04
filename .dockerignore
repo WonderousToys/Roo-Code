@@ -1,4 +1,7 @@
-# Build artifacts
+# git
+.git
+
+# build artifacts
 bin/
 dist/
 **/dist/

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 "use server"
 
 import { spawn } from "child_process"
@@ -49,24 +51,60 @@ export async function createRun({ suite, exercises = [], systemPrompt, ...values
 
 	revalidatePath("/runs")
 
-	try {
-		const logFile = fs.openSync(`/tmp/roo-code-evals-${run.id}.log`, "a")
+	// try {
+	// 	const logFile = fs.openSync(`/tmp/roo-code-evals-${run.id}.log`, "a")
 
-		const env: NodeJS.ProcessEnv = systemPrompt
-			? { ...process.env, FOOTGUN_SYSTEM_PROMPT: systemPrompt }
-			: process.env
+	// 	const env: NodeJS.ProcessEnv = systemPrompt
+	// 		? { ...process.env, FOOTGUN_SYSTEM_PROMPT: systemPrompt }
+	// 		: process.env
 
-		const childProcess = spawn("pnpm", ["--filter", "@roo-code/evals", "cli", run.id.toString()], {
-			detached: true,
-			stdio: ["ignore", logFile, logFile],
-			env,
-		})
+	// 	const childProcess = spawn("pnpm", ["--filter", "@roo-code/evals", "cli", run.id.toString()], {
+	// 		detached: true,
+	// 		stdio: ["ignore", logFile, logFile],
+	// 		env,
+	// 	})
 
-		childProcess.unref()
-		await _updateRun(run.id, { pid: childProcess.pid })
-	} catch (error) {
-		console.error(error)
-	}
+	// 	childProcess.unref()
+	// 	await _updateRun(run.id, { pid: childProcess.pid })
+	// } catch (error) {
+	// 	console.error(error)
+	// }
+
+	// try {
+	// 	const logFile = `/tmp/roo-code-evals-${run.id}.log`
+
+	// 	const envVars = systemPrompt ? { ...process.env, FOOTGUN_SYSTEM_PROMPT: systemPrompt } : process.env
+
+	// 	// Requires a docker socket mounted and host container running.
+	// 	const runOnHost = async () => {
+	// 		// Create and start a new runner container connected to the compose network
+	// 		const command = `docker run --rm --network evals_default evals-runner sh -c "pnpm --filter @roo-code/evals cli ${run.id}"`
+
+	// 		const childProcess = spawn("sh", ["-c", command], {
+	// 			detached: true,
+	// 			stdio: ["ignore", "pipe", "pipe"],
+	// 		})
+
+	// 		// Redirect output to log file
+	// 		const logStream = fs.createWriteStream(logFile, { flags: "a" })
+
+	// 		if (childProcess.stdout) {
+	// 			childProcess.stdout.pipe(logStream)
+	// 		}
+
+	// 		if (childProcess.stderr) {
+	// 			childProcess.stderr.pipe(logStream)
+	// 		}
+
+	// 		return childProcess
+	// 	}
+
+	// 	const childProcess = await runOnHost()
+	// 	childProcess.unref()
+	// 	await _updateRun(run.id, { pid: childProcess.pid })
+	// } catch (error) {
+	// 	console.error(error)
+	// }
 
 	return run
 }

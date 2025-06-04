@@ -1,20 +1,48 @@
-# docker compose up --build --no-start
+# docker compose build web runner
+
+# docker compose up db web
+# docker compose up runner
+# docker compose up runner --no-start
+# docker run -it --rm --network evals_default evals-runner bash
+# docker run --rm --network evals_default evals-runner sh -c "pnpm --filter @roo-code/evals cli 3"
 
 services:
-  postgres:
-    container_name: postgres-evals
-    image: postgres:15.4
-    ports:
-      - 5432:5432
-    volumes:
-      - ./.docker/postgres:/var/lib/postgresql/data
-      - ./.docker/scripts/postgres:/docker-entrypoint-initdb.d
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DATABASES=evals_development,evals_test
-  runner:
-    container_name: runner-evals
-    build:
-      context: ../../
-      dockerfile: packages/evals/Dockerfile
+    db:
+        container_name: evals-db
+        image: postgres:15.4
+        ports:
+            - 5432:5432
+        volumes:
+            - ./.docker/postgres:/var/lib/postgresql/data
+            - ./.docker/scripts/postgres:/docker-entrypoint-initdb.d
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=password
+            - POSTGRES_DATABASES=evals_development,evals_test
+        profiles:
+            - db
+
+    web:
+        container_name: evals-web
+        build:
+            context: ../../
+            dockerfile: packages/evals/Dockerfile.web
+        ports:
+            - "3000:3000"
+        environment:
+            - HOST_EXECUTION_METHOD=docker
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        user: "0:0" # Run as root to access docker socket.
+        profiles:
+            - web
+
+    runner:
+        container_name: evals-runner
+        build:
+            context: ../../
+            dockerfile: packages/evals/Dockerfile.runner
+        stdin_open: true
+        tty: true
+        profiles:
+            - runner

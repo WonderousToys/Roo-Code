@@ -1,5 +1,5 @@
-# docker build -f packages/evals/Dockerfile -t roo-code-evals .
-# docker run -it roo-code-evals
+# docker build -f packages/evals/Dockerfile.runner -t evals-runner .
+# docker run -it evals-runner
 
 FROM node:20-slim AS base
 
@@ -62,7 +62,6 @@ WORKDIR /home/vscode/repo
 # Install npm packages
 RUN mkdir -p \
   scripts \
-  apps/web-evals \
   packages/build \
   packages/cloud \
   packages/config-eslint \
@@ -78,7 +77,6 @@ COPY --chown=vscode:vscode ./package.json                            ./
 COPY --chown=vscode:vscode ./pnpm-lock.yaml                          ./
 COPY --chown=vscode:vscode ./pnpm-workspace.yaml                     ./
 COPY --chown=vscode:vscode ./scripts/bootstrap.mjs                   ./scripts/
-COPY --chown=vscode:vscode ./apps/web-evals/package.json             ./apps/web-evals/
 COPY --chown=vscode:vscode ./packages/build/package.json             ./packages/build/
 COPY --chown=vscode:vscode ./packages/cloud/package.json             ./packages/cloud/
 COPY --chown=vscode:vscode ./packages/config-eslint/package.json     ./packages/config-eslint/
@@ -93,17 +91,11 @@ RUN pnpm install
 
 # Build the extension
 COPY --chown=vscode:vscode . ./
-RUN pnpm vsix -- --out ../bin/roo-code.vsix
+RUN pnpm build -- --out ../bin/roo-code.vsix
 
 # Copy & install extension
-RUN code --debug --install-extension ./roo-code.vsix
+RUN code --debug --install-extension bin/roo-code.vsix
 
-# Copy env variables
-# COPY --chown=vscode:vscode packages/evals/.env ./
+ENV DATABASE_URL=postgresql://postgres:password@db:5432/evals_development
 
-# Push database schema
-# RUN pnpm --filter @roo-code/evals db:push --force
-
-# EXPOSE 3000
-# CMD ["pnpm", "web"]
 CMD ["bash"]
